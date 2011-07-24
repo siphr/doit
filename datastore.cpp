@@ -58,7 +58,7 @@ void _datastore::ensure_schema() const
 	for (std::vector<std::string>::const_iterator cat = categories.begin(); cat != categories.end(); ++cat)
 	{
 		std::ostringstream ss;
-		ss << "create table if not exists " << *cat << " (content STRING);";
+		ss << "create table if not exists " << *cat << " (content STRING, date DATE, done BOOL);";
 		execute_query(ss.str().c_str());
 	}
 }
@@ -75,18 +75,48 @@ void _datastore::get_categories(std::vector<std::string>& categories) const
 	}
 }
 
-void _datastore::add_category(char const *category) const
+bool _datastore::category_exists(char const *category) const
 {
 	std::ostringstream ss;
-	ss << "insert into categories values('" << category << "');";
+	ss << "select name from categories where name like '" << category << "';";
 
+	std::vector< std::vector<std::string> > results;
+	execute_query(ss.str().c_str(), &results);
+	return !results.empty();
+}
+
+void _datastore::add_category(char const *category) const
+{
+	if (category_exists(category)) return;
+
+	std::ostringstream ss;
+	ss << "insert into categories values('" << category << "');";
 	execute_query(ss.str().c_str());
+
+	ss.str("");
+
+	ss << "create table if not exists " << category << " (content STRING, date DATE, done BOOLEAN);";
+	execute_query(ss.str().c_str());
+}
+
+void _datastore::get_content(char const *category, std::vector< std::vector<std::string> >& contents) const
+{
+	std::ostringstream ss;
+	ss << "select content,date,done from " << category << " where not done order by date asc;";
+	//std::cout << ss.str() << std::endl;
+	execute_query(ss.str().c_str(), &contents);
 }
 
 void _datastore::add_content(char const *category, char const *content) const
 {
+	if (!category_exists(category))
+	{
+		add_category(category);
+	}
+	
 	std::ostringstream ss;
-	ss << "insert into " << category << " values('" << content << "');";
+	ss << "insert into " << category << " values('" << content << "', datetime(), 0);";
+	//std::cout << ss.str() << std::endl;
 
 	execute_query(ss.str().c_str());
 }

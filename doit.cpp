@@ -1,42 +1,47 @@
-#include <iostream>
+#include "cmdline.h"
 #include "datastore.h"
-#include <boost/program_options.hpp>
 
-namespace bpo = boost::program_options;
-
-void setup_help(int ac, char** av)
-{
-	bpo::options_description root_help("doit - facilitator utility v1.0");
-	root_help.add_options()
-		("help", "produce help message.")
-	;
-
-	bpo::variables_map vm;
-	bpo::store(bpo::parse_command_line(ac, av, root_help), vm);
-	bpo::notify(vm);    
-
-	if (vm.count("help")) {
-		std::cout << root_help << "\n";
-		return;
-	}
-}
+#include <iostream>
 
 
 int main (int ac, char** av)
 {
-	setup_help(ac, av);
-	
+	_cmdline cmdline(ac, av);
 	_datastore ds;
 
-	ds.add_category("books");
-
-	std::vector<std::string> categories;
-	ds.get_categories(categories);
-
-	for (std::vector<std::string>::const_iterator cat = categories.begin(); cat != categories.end(); ++cat)
+	if (cmdline.show_help())
 	{
-		std::cout << *cat << std::endl;
-	};
+
+	}
+	else if (cmdline.show_categories())
+	{
+		std::vector<std::string> categories;
+		ds.get_categories(categories);
+
+		for (std::vector<std::string>::const_iterator cat = categories.begin(); cat != categories.end(); ++cat)
+		{
+			std::cout << *cat << std::endl;
+		}
+	}
+	else if (cmdline.show_contents())
+	{
+		std::vector< std::vector<std::string> > contents;
+		ds.get_content(cmdline.category().c_str(), contents);
+
+		for (std::vector< std::vector<std::string> >::const_iterator cnt = contents.begin(); cnt != contents.end(); ++cnt)
+		{
+			std::cout << cnt->at(0) << std::endl;
+		}
+	}
+	else if (cmdline.add_category())
+	{
+		ds.add_category(cmdline.category().c_str());
+	}
+	else if (cmdline.add_content())
+	{
+		ds.add_content(cmdline.category().c_str(), cmdline.content().c_str());
+	}
+
 
 	return 0;
 }
