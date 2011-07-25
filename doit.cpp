@@ -11,7 +11,7 @@ int main (int ac, char** av)
 
 	if (cmdline.show_help())
 	{
-
+		std::cout << cmdline.help();
 	}
 	else if (cmdline.show_categories())
 	{
@@ -33,6 +33,14 @@ int main (int ac, char** av)
 			std::cout << cnt->at(0) << std::endl;
 		}
 	}
+	else if (cmdline.show_stats_category())
+	{
+		_datastore::_stats_category stats;
+		ds.get_stats_category(cmdline.category().c_str(), stats);
+		std::cout << std::endl << "CURRENT: " << stats.m_current_item << std::endl;
+		std::cout << "TODO: " << stats.m_todo_items << std::endl;
+		std::cout << "DONE: " << stats.m_done_items << std::endl;
+	}
 	else if (cmdline.add_category())
 	{
 		ds.add_category(cmdline.category().c_str());
@@ -40,6 +48,10 @@ int main (int ac, char** av)
 	else if (cmdline.add_content())
 	{
 		ds.add_content(cmdline.category().c_str(), cmdline.content().c_str());
+	}
+	else if (cmdline.done_content())
+	{
+		ds.done_content(cmdline.category().c_str());
 	}
 
 

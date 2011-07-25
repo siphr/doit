@@ -12,10 +12,31 @@ class _datastore
 	~_datastore();
 
 
+	struct _stats_summary
+	{
+		size_t m_number_of_categories;
+		size_t m_done_items;
+		size_t m_todo_items;
+	};
+
+	struct _stats_category
+	{
+		size_t m_done_items;
+		size_t m_todo_items;
+		std::string m_current_item;
+		float m_rate_of_discovery;
+		float m_rate_of_completion;
+	};
+
 	void get_categories(std::vector<std::string>& categories) const;
 	void add_category(char const *category) const;
+
 	void get_content(char const *category, std::vector< std::vector<std::string> >& content) const;
 	void add_content(char const *category, char const *content) const;
+
+	void done_content(char const *category) const;
+
+	void get_stats_category(char const *category, _stats_category& stats) const;
 
 	private:
 

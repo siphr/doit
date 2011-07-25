@@ -103,7 +103,6 @@ void _datastore::get_content(char const *category, std::vector< std::vector<std:
 {
 	std::ostringstream ss;
 	ss << "select content,date,done from " << category << " where not done order by date asc;";
-	//std::cout << ss.str() << std::endl;
 	execute_query(ss.str().c_str(), &contents);
 }
 
@@ -116,7 +115,43 @@ void _datastore::add_content(char const *category, char const *content) const
 	
 	std::ostringstream ss;
 	ss << "insert into " << category << " values('" << content << "', datetime(), 0);";
-	//std::cout << ss.str() << std::endl;
 
 	execute_query(ss.str().c_str());
+}
+
+void _datastore::done_content(char const *category) const
+{
+	assert(category_exists(category));
+
+	std::ostringstream ss;
+	ss << "update " << category << " set done=1 where content=(select content from " << category << " where done=0 order by date asc limit 1);";
+
+	execute_query(ss.str().c_str());
+}
+
+void _datastore::get_stats_category(char const *category, _stats_category& stats) const
+{
+	std::ostringstream ss;
+	std::vector< std::vector<std::string> > results;
+
+	ss << "select count(rowid) from " << category << " where done=0;";
+	execute_query(ss.str().c_str(), &results);
+	stats.m_todo_items = atoi(results.at(0).at(0).c_str());
+
+	ss.str("");
+	ss << "select count(rowid) from " << category << " where done=1;";
+	execute_query(ss.str().c_str(), &results);
+	stats.m_done_items = atoi(results.at(0).at(0).c_str());
+
+	if (stats.m_todo_items != 0)
+	{
+		ss.str("");
+		ss << "select content from " << category << " where done=0 order by date asc limit 1;";
+		execute_query(ss.str().c_str(), &results);
+		stats.m_current_item = results.at(0).at(0).c_str();
+	}
+	else
+	{
+		stats.m_current_item = "";
+	}
 }
