@@ -58,7 +58,7 @@ void _datastore::ensure_schema() const
 	for (std::vector<std::string>::const_iterator cat = categories.begin(); cat != categories.end(); ++cat)
 	{
 		std::ostringstream ss;
-		ss << "create table if not exists " << *cat << " (content STRING, date DATE, done BOOL);";
+		ss << "create table if not exists " << *cat << " (content STRING, date_added DATE, done BOOL, date_done DATE);";
 		execute_query(ss.str().c_str());
 	}
 }
@@ -95,14 +95,14 @@ void _datastore::add_category(char const *category) const
 
 	ss.str("");
 
-	ss << "create table if not exists " << category << " (content STRING, date DATE, done BOOLEAN);";
+	ss << "create table if not exists " << category << " (content STRING, date_added DATE, done BOOL, date_done DATE);";
 	execute_query(ss.str().c_str());
 }
 
 void _datastore::get_content(char const *category, std::vector< std::vector<std::string> >& contents) const
 {
 	std::ostringstream ss;
-	ss << "select content,date,done from " << category << " where not done order by date asc;";
+	ss << "select content,date_added,done,date_done from " << category << " where not done order by date_added asc;";
 	execute_query(ss.str().c_str(), &contents);
 }
 
@@ -114,7 +114,7 @@ void _datastore::add_content(char const *category, char const *content) const
 	}
 	
 	std::ostringstream ss;
-	ss << "insert into " << category << " values('" << content << "', datetime(), 0);";
+	ss << "insert into " << category << " values('" << content << "', datetime(), 0, '');";
 
 	execute_query(ss.str().c_str());
 }
@@ -124,7 +124,7 @@ void _datastore::done_content(char const *category) const
 	assert(category_exists(category));
 
 	std::ostringstream ss;
-	ss << "update " << category << " set done=1 where content=(select content from " << category << " where done=0 order by date asc limit 1);";
+	ss << "update " << category << " set done=1,date_done=datetime() where content=(select content from " << category << " where done=0 order by date_added asc limit 1);";
 
 	execute_query(ss.str().c_str());
 }
@@ -146,12 +146,40 @@ void _datastore::get_stats_category(char const *category, _stats_category& stats
 	if (stats.m_todo_items != 0)
 	{
 		ss.str("");
-		ss << "select content from " << category << " where done=0 order by date asc limit 1;";
+		ss << "select content,date_added from " << category << " where done=0 order by date_added asc limit 1;";
 		execute_query(ss.str().c_str(), &results);
-		stats.m_current_item = results.at(0).at(0).c_str();
+		stats.m_current_item = results.at(0).at(0) + " | " + results.at(0).at(1);
 	}
 	else
 	{
 		stats.m_current_item = "";
+	}
+
+	ss.str("");
+
+	ss << "select count(rowid) from " << category << ";";
+	execute_query(ss.str().c_str(), &results);
+	stats.m_rate_of_discovery = atof(results.at(0).at(0).c_str());
+
+	if (stats.m_rate_of_discovery > 0)
+	{
+		ss.str("");
+		ss << "select max(julianday(date_added)) - min(julianday(date_added)) from " << category << ";";
+		execute_query(ss.str().c_str(), &results);
+		stats.m_rate_of_discovery /= atof(results.at(0).at(0).c_str());
+	}
+
+	ss.str("");
+
+	ss << "select count(rowid) from " << category << " where done=1;";
+	execute_query(ss.str().c_str(), &results);
+	stats.m_rate_of_completion = atof(results.at(0).at(0).c_str());
+
+	if (stats.m_rate_of_completion > 0)
+	{
+		ss.str("");
+		ss << "select 1/avg(julianday(date_done) - julianday(date_added)) from " << category << " where done=1;";
+		execute_query(ss.str().c_str(), &results);
+		stats.m_rate_of_completion = atof(results.at(0).at(0).c_str());
 	}
 }

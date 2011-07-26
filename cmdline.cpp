@@ -7,7 +7,7 @@ _cmdline::_cmdline(int ac, char** av)
 	bpo::options_description root_help("doit - facilitator utility v1.0");
 	root_help.add_options()
 		("help,h", "Somebody called a doctor?")
-		("show,s", "Show all categories or content for a specified category.")
+		("show,s", "Show categories, content or statistics for a specified category.")
 		("info,i", "Show summary statistics for all categories or detailed statistics for specified category.")
 		("add,a", "Add a category or content for a specified category.")
 		("done,d", "Marks the top most content in queue of a category as done.")
