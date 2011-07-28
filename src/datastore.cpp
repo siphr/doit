@@ -1,7 +1,9 @@
 #include "datastore.h"
-#include <iostream>
+
 #include <assert.h>
+#include <iostream>
 #include <sstream>
+#include <stdlib.h>
 
 const std::string _datastore::m_db_path = ".doit.db";
 
