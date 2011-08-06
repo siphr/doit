@@ -2,14 +2,22 @@
 
 #include <assert.h>
 #include <iostream>
+#include <pwd.h>
 #include <sstream>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-const std::string _datastore::m_db_path = ".doit.db";
+#define BOOST_FILESYSTEM_VERSION 2
+
+#include <boost/filesystem.hpp>
 
 _datastore::_datastore()
 {
-	assert(sqlite3_open(".doit.db", &m_db) == SQLITE_OK);
+	struct passwd *pw = getpwuid(getuid());
+	const char *homedir = pw->pw_dir;
+
+	assert(sqlite3_open((std::string(homedir) + std::string("/.doit.db")).c_str(), &m_db) == SQLITE_OK);
 	ensure_schema();
 }
 

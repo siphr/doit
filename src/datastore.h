@@ -46,5 +46,4 @@ class _datastore
 	bool category_exists(char const *category) const;
 
 	sqlite3* m_db;
-	static const std::string m_db_path;
 };
