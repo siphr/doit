@@ -33,7 +33,7 @@ bool _cmdline::show_help() const
 
 bool _cmdline::show_categories() const
 {
-	return m_vm.count("show") == 1 && m_vm.count("category") == 0;
+	return m_vm.count("show") == 1 && m_vm.count("category") == 0 && m_vm.count("info") == 0;
 }
 
 bool _cmdline::show_contents() const

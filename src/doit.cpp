@@ -35,6 +35,20 @@ int main (int ac, char** av)
 			std::cout << cnt->at(0) << "\t" << cnt->at(1) << std::endl;
 		}
 	}
+	else if (cmdline.show_stats_summary())
+	{
+		std::vector<std::string> categories;
+		ds.get_categories(categories);
+
+		std::cout << std::endl << "[\t\tSTATISTICS SUMMARY\t\t]" << std::endl;
+		for (std::vector<std::string>::const_iterator cat = categories.begin(); cat != categories.end(); ++cat)
+		{
+			_datastore::_stats_category stats;
+			ds.get_stats_category(cat->c_str(), stats);
+			std::cout << "CAT: " << *cat << " CUR: " << stats.m_current_item
+				<< " ROD: " << stats.m_rate_of_discovery << std::endl;
+		}
+	}
 	else if (cmdline.show_stats_category())
 	{
 		_datastore::_stats_category stats;
