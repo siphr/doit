@@ -176,7 +176,7 @@ void _datastore::get_stats_category(char const *category, _stats_category& stats
 		ss.str("");
 		ss << "select max(julianday(date_added)) - min(julianday(date_added)) from " << category << ";";
 		execute_query(ss.str().c_str(), &results);
-		stats.m_rate_of_discovery /= atof(results.at(0).at(0).c_str());
+		stats.m_rate_of_discovery /= atof(results.at(0).at(0).c_str()) + 1;
 	}
 
 	ss.str("");
